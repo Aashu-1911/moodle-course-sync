@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Moodle Course Hub Sync",
+  "version": "1.0",
+  "description": "Scrapes and synchronizes enrolled college courses from Moodle with your Moodle Course Hub.",
+  "permissions": [
+    "storage",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://moodle.mitaoe.ac.in/*",
+    "http://localhost:8000/*",
+    "https://*.vercel.app/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Moodle Sync Dashboard",
+    "default_icon": "icon.svg"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://moodle.mitaoe.ac.in/*"],
+      "js": ["supabase.js", "content.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "http://localhost:8000/*",
+        "https://*.vercel.app/*"
+      ],
+      "js": ["connector.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "128": "icon.svg"
+  }
+}

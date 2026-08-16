@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Local configuration files containing credentials
+web/js/config.js
+
+# Vercel static cache directories
+.vercel/
+
+# Editor files and local IDE settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS System Files
+.DS_Store
+Thumbs.db

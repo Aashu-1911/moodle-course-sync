@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moodle Sync Panel</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="popup-wrapper">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="logo-area">
+        <img src="icon.svg" alt="Hub Logo" class="logo-img">
+        <h1>Moodle Course Hub</h1>
+      </div>
+    </header>
+
+    <!-- Connection Status card -->
+    <div id="connection-status-card" class="status-card disconnected">
+      <div class="status-dot"></div>
+      <div class="status-info">
+        <div id="status-title" class="status-title">Disconnected</div>
+        <div id="status-desc" class="status-desc">Credentials syncing from dashboard...</div>
+      </div>
+    </div>
+
+    <!-- Active Configurations Panel -->
+    <div class="config-panel">
+      <div class="config-row">
+        <span class="config-label">Target Semester</span>
+        <span id="target-semester-val" class="config-value">-</span>
+      </div>
+      <div class="config-row">
+        <span class="config-label">Last Sync Run</span>
+        <span id="last-sync-val" class="config-value">Never</span>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-num" id="metric-detected">0</div>
+        <div class="metric-label">Detected</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num" id="metric-added">0</div>
+        <div class="metric-label">New Added</div>
+      </div>
+    </div>
+
+    <!-- Notification message block -->
+    <div id="notification-block" class="notification-text" style="display: none;"></div>
+
+    <!-- Actions -->
+    <div class="actions-wrapper">
+      <button id="btn-sync" class="btn-primary" disabled>Sync Now</button>
+      <button id="btn-dashboard" class="btn-secondary">Open Dashboard</button>
+    </div>
+  </div>
+
+  <script src="supabase.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

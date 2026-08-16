@@ -1,0 +1,18 @@
+{
+  "short_name": "Moodle Hub",
+  "name": "Moodle Course Hub",
+  "description": "Organize your Moodle courses by semester and sync across all your devices.",
+  "start_url": "./index.html",
+  "background_color": "#070d19",
+  "theme_color": "#1e3a8a",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ]
+}

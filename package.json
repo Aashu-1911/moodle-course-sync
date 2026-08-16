@@ -1,0 +1,13 @@
+{
+  "name": "moodle-course-hub",
+  "version": "1.0.0",
+  "description": "Cross-device Moodle Course Dashboard",
+  "main": "web/index.html",
+  "scripts": {
+    "dev": "http-server ./web -p 8000",
+    "start": "http-server ./web -p 8000"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

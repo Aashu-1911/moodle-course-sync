@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moodle Course Hub - Settings</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1e3a8a">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon.png">
+</head>
+<body class="light-theme">
+
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header>
+      <div class="logo-area">
+        <h1>Console Settings</h1>
+      </div>
+      <div class="header-actions">
+        <button id="btn-back" class="btn-secondary" style="padding: 10px 20px; width: auto;">← Dashboard</button>
+      </div>
+    </header>
+
+    <!-- General Settings Section -->
+    <div class="glass-panel settings-section">
+      <h2>⚙️ General Configurations</h2>
+      
+      <!-- Current Semester Selection -->
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-title">Current Semester Target</div>
+          <div class="settings-desc">Extension will assign newly discovered courses to this semester.</div>
+        </div>
+        <div class="select-wrapper">
+          <select id="select-current-semester">
+            <!-- Render options dynamically -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Theme Selection Dropdown -->
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-title">Theme Mode</div>
+          <div class="settings-desc">Choose between System default, light, or premium dark navy aesthetic.</div>
+        </div>
+        <div class="select-wrapper">
+          <select id="select-theme">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="system">System Default</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Automatic Assignment Switch -->
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-title">Auto-Assign New Courses</div>
+          <div class="settings-desc">Assign newly discovered Moodle courses to the target semester automatically.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="check-auto-assign">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Pokemon Companions Switch -->
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-title">Pokémon Companions</div>
+          <div class="settings-desc">Enable pixelated Pokémon companions underneath your course grid.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="check-pokemon">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Chrome Extension Section (Handshake Connection) -->
+    <div class="glass-panel settings-section">
+      <h2>🔌 Chrome Extension Connection</h2>
+      <p style="font-size: 0.85rem; color: #64748b; margin-top: -12px; margin-bottom: 20px; line-height: 1.4;">
+        Automatically synchronize your enrolled Moodle courses from desktop Chrome.
+      </p>
+      
+      <div class="settings-row" style="border-bottom: none; padding-bottom: 0; align-items: center;">
+        <div class="settings-info">
+          <div class="settings-title">Extension Status</div>
+          <div class="settings-desc" id="extension-status-desc">Checking extension connection...</div>
+        </div>
+        <button id="btn-connect-extension" class="btn-primary" style="padding: 10px 20px; width: auto; font-size: 0.9rem;" disabled>Connect Extension</button>
+      </div>
+
+      <div class="mobile-note" style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.08); border-radius: 8px; font-size: 0.8rem; line-height: 1.4; color: #2563eb; display: none;">
+        <strong>Mobile Info:</strong> Automatic Moodle synchronization is performed by the desktop Chrome extension. Your phone does not need the extension to view synchronized courses.
+      </div>
+      
+      <div class="desktop-note" id="extension-help-note" style="margin-top: 16px; padding: 12px; background: rgba(0, 0, 0, 0.02); border-radius: 8px; font-size: 0.8rem; line-height: 1.4; color: #64748b; display: none;">
+        The desktop Chrome extension is required for automatic Moodle synchronization. The Course Hub dashboard and mobile PWA still work without it.
+      </div>
+    </div>
+
+    <!-- Semester Management Section -->
+    <div class="glass-panel settings-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin-bottom: 0;">📅 Semester Directory Management</h2>
+        <button id="btn-create-semester" class="btn-primary" style="padding: 8px 16px; width: auto; font-size: 0.85rem;">+ Add Semester</button>
+      </div>
+      
+      <!-- Semesters List -->
+      <div class="settings-course-list" id="settings-semesters-container">
+        <!-- Rendered semesters go here -->
+      </div>
+    </div>
+
+    <!-- Course Management Section -->
+    <div class="glass-panel settings-section">
+      <h2>📚 Course Directory Management</h2>
+      
+      <!-- Select Semester to Filter Courses -->
+      <div class="settings-row" style="border-bottom: none; margin-bottom: 12px; padding: 0;">
+        <div class="settings-info">
+          <div class="settings-title" style="font-size: 0.95rem;">Select Semester to Edit:</div>
+        </div>
+        <div class="select-wrapper">
+          <select id="select-edit-semester">
+            <!-- Render options dynamically -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Courses List -->
+      <div class="settings-course-list" id="settings-courses-container">
+        <!-- Rendered courses go here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Rename Semester Modal -->
+  <div id="semester-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="semester-modal-title">Add Semester</h3>
+        <button id="close-semester-modal" class="icon-btn" style="width: 32px; height: 32px; font-size: 0.9rem;">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="input-semester-name">Semester Name</label>
+          <input type="text" id="input-semester-name" class="form-input" placeholder="e.g. SEM 9" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cancel-semester" class="btn-secondary" style="padding: 10px 16px; width: auto;">Cancel</button>
+        <button id="btn-save-semester" class="btn-primary" style="padding: 10px 20px; width: auto;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename Course Modal -->
+  <div id="rename-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Rename Course Card</h3>
+        <button id="close-rename-modal" class="icon-btn" style="width: 32px; height: 32px; font-size: 0.9rem;">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label style="font-size: 0.75rem;">Moodle Original Name</label>
+          <div id="original-course-name" style="padding: 10px; background: rgba(0,0,0,0.05); border-radius: var(--border-radius-md); font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;"></div>
+        </div>
+        <div class="form-group">
+          <label for="input-display-name">Custom Display Name</label>
+          <input type="text" id="input-display-name" class="form-input" placeholder="e.g. EI - TH" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cancel-rename" class="btn-secondary" style="padding: 10px 16px; width: auto;">Cancel</button>
+        <button id="btn-save-rename" class="btn-primary" style="padding: 10px 20px; width: auto;">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Move Course Modal -->
+  <div id="move-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Change Semester Assignment</h3>
+        <button id="close-move-modal" class="icon-btn" style="width: 32px; height: 32px; font-size: 0.9rem;">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
+          Select a new semester to assign <strong id="move-course-display-name"></strong>.
+        </p>
+        <div class="form-group">
+          <label for="select-target-semester">Target Semester</label>
+          <div class="select-wrapper" style="width: 100%;">
+            <select id="select-target-semester" class="form-input" style="width: 100%;">
+              <!-- Render dynamically -->
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top: 16px;">
+          <label for="select-target-category">Target Category</label>
+          <div class="select-wrapper" style="width: 100%;">
+            <select id="select-target-category" class="form-input" style="width: 100%;">
+              <option value="">-- Use Default Suffix matching --</option>
+              <option value="core">Core Subjects</option>
+              <option value="lab">Lab Courses</option>
+              <option value="other">Other Courses</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cancel-move" class="btn-secondary" style="padding: 10px 16px; width: auto;">Cancel</button>
+        <button id="btn-save-move" class="btn-primary" style="padding: 10px 20px; width: auto;">Move Course</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-notify" class="toast">Changes saved successfully</div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/settings.js"></script>
+  <script>
+    // Register Service Worker for PWA with automatic controller reload on update
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            console.log('Service Worker registered successfully!', reg.scope);
+            
+            // Check for updates periodically
+            if (reg.active) {
+              reg.update();
+            }
+
+            // Listen for changes to service worker states
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('[PWA] New version installed. Activating...');
+                }
+              });
+            });
+          })
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+
+      // Force page reload when service worker takes control
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          console.log('[PWA] Service worker updated! Reloading...');
+          window.location.reload();
+        }
+      });
+    }
+  </script>
+</body>
+</html>

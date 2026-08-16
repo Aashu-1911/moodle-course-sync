@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moodle Course Hub - Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1e3a8a">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon.png">
+</head>
+<body class="light-theme">
+
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header>
+      <div class="logo-area">
+        <h1>Moodle Course Hub</h1>
+      </div>
+      <div class="header-actions">
+        <button id="theme-toggle" class="icon-btn" title="Toggle Light/Dark Theme">🌓</button>
+        <button id="btn-settings" class="icon-btn" title="Open Settings">⚙️</button>
+        <button id="btn-logout" class="icon-btn" title="Sign Out">🚪</button>
+      </div>
+    </header>
+
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" class="pwa-banner">
+      <div class="pwa-banner-text">Install Moodle Course Hub on your device for quick access!</div>
+      <div class="pwa-banner-actions">
+        <button id="btn-pwa-install" class="btn-pwa-install">Install</button>
+        <button id="btn-pwa-dismiss" class="btn-pwa-dismiss">Dismiss</button>
+      </div>
+    </div>
+
+    <!-- Sync status summary -->
+    <div class="glass-panel sync-status-card">
+      <div class="sync-dot"></div>
+      <div class="sync-info">
+        <div class="settings-title">Cloud Synchronized</div>
+        <div class="settings-desc" id="sync-time-desc">Courses up to date. Extension connected.</div>
+      </div>
+    </div>
+
+    <!-- Unassigned Courses Section -->
+    <div id="unassigned-courses-container" class="glass-panel settings-section" style="display: none; margin-bottom: 24px; border-left: 5px solid #e11d48; padding: 20px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <h2 style="color: #e11d48; margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+          <span>⚠</span> Unassigned Courses (<span id="unassigned-count">0</span>)
+        </h2>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button id="btn-select-all-unassigned" class="action-btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.05); color: var(--text-primary); border: 1px solid rgba(0,0,0,0.1);">Select All</button>
+          <button id="btn-deselect-all-unassigned" class="action-btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.05); color: var(--text-primary); border: 1px solid rgba(0,0,0,0.1);">Deselect All</button>
+        </div>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 16px 0;">
+        These courses were newly discovered by the Moodle extension. Assign them to a semester to display them in your layout.
+      </p>
+
+      <!-- Bulk Assignment Bar -->
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; background: rgba(0,0,0,0.02); padding: 12px; border-radius: var(--border-radius-md); border: 1px dashed rgba(0,0,0,0.1);">
+        <span style="font-size: 0.8rem; font-weight: 500;">Assign selected to:</span>
+        <div class="select-wrapper" style="width: auto; min-width: 140px; margin: 0;">
+          <select id="select-bulk-semester" style="padding: 6px; font-size: 0.8rem; border-radius: var(--border-radius-sm); border: 1px solid rgba(0,0,0,0.15); width: 100%;">
+            <option value="">-- Select Semester --</option>
+            <!-- Render options dynamically -->
+          </select>
+        </div>
+        <button id="btn-bulk-assign" class="btn-primary" style="padding: 8px 16px; width: auto; font-size: 0.8rem; border-radius: var(--border-radius-sm);" disabled>Bulk Assign</button>
+      </div>
+
+      <!-- Unassigned List Grid -->
+      <div class="settings-course-list" id="unassigned-courses-list" style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+        <!-- Rendered unassigned courses go here -->
+      </div>
+    </div>
+
+    <!-- Semester Tab Selector -->
+    <div class="glass-panel semester-selector-card">
+      <div class="semester-list" id="semester-tabs-container">
+        <!-- Semester Tabs rendered here -->
+        <div class="semester-tab active">SEM 5</div>
+      </div>
+    </div>
+
+    <!-- Course Grid Container -->
+    <div id="course-grid-container">
+      <!-- Course Cards rendered here -->
+      <div class="empty-state">
+        <div class="empty-state-icon">📚</div>
+        <p>No courses found for this semester. Sync courses using the desktop Chrome extension or add them in Settings.</p>
+      </div>
+    </div>
+
+    <!-- Pokemon Sprites Panel -->
+    <div class="glass-panel pokemon-row" id="pokemon-row-container" style="display: none;">
+      <div class="pokemon-row-title">✨ Pokémon Companions ✨</div>
+      <div class="pokemon-sprites" id="pokemon-sprites-container">
+        <!-- Pokémon sprites rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-notify" class="toast">Action completed successfully</div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script>
+    // Register Service Worker for PWA with automatic controller reload on update
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            console.log('Service Worker registered successfully!', reg.scope);
+            
+            // Check for updates periodically
+            if (reg.active) {
+              reg.update();
+            }
+
+            // Listen for changes to service worker states
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('[PWA] New version installed. Activating...');
+                }
+              });
+            });
+          })
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+
+      // Force page reload when service worker takes control
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          console.log('[PWA] Service worker updated! Reloading...');
+          window.location.reload();
+        }
+      });
+    }
+  </script>
+</body>
+</html>

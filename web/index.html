@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moodle Course Hub - Login</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1e3a8a">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon.png">
+</head>
+<body class="light-theme">
+
+  <div class="auth-wrapper">
+    <div class="glass-panel auth-card">
+      <div class="auth-header">
+        <h1>Moodle Course Hub</h1>
+        <p id="auth-subtitle">Log in to organize your Moodle courses</p>
+      </div>
+
+      <form id="auth-form">
+        <div class="form-group">
+          <label for="email">College Email</label>
+          <input type="email" id="email" class="form-input" placeholder="you@mitaoe.ac.in" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn-primary">Sign In</button>
+      </form>
+
+      <div class="auth-footer">
+        <span id="footer-text">Don't have an account?</span>
+        <a href="#" id="toggle-auth-mode">Sign Up</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-notify" class="toast">Successfully Logged In!</div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Guard page: redirect to dashboard if already authenticated
+    Auth.redirectIfAuthenticated();
+
+    const form = document.getElementById("auth-form");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const submitBtn = document.getElementById("submit-btn");
+    const toggleLink = document.getElementById("toggle-auth-mode");
+    const subtitle = document.getElementById("auth-subtitle");
+    const footerText = document.getElementById("footer-text");
+    const toast = document.getElementById("toast-notify");
+
+    let isLoginMode = true;
+
+    // Toast utility
+    function showToast(message, isError = false) {
+      toast.textContent = message;
+      toast.style.background = isError ? "#ef4444" : "linear-gradient(135deg, var(--primary-navy), var(--accent-blue))";
+      toast.classList.add("active");
+      setTimeout(() => {
+        toast.classList.remove("active");
+      }, 3500);
+    }
+
+    // Toggle between login and registration mode
+    toggleLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      isLoginMode = !isLoginMode;
+
+      if (isLoginMode) {
+        subtitle.textContent = "Log in to organize your Moodle courses";
+        submitBtn.textContent = "Sign In";
+        footerText.textContent = "Don't have an account?";
+        toggleLink.textContent = "Sign Up";
+      } else {
+        subtitle.textContent = "Create an account to sync courses across devices";
+        submitBtn.textContent = "Create Account";
+        footerText.textContent = "Already have an account?";
+        toggleLink.textContent = "Sign In";
+      }
+    });
+
+    // Form submission
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        showToast("Please enter email and password.", true);
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = isLoginMode ? "Signing In..." : "Creating Account...";
+
+      try {
+        if (isLoginMode) {
+          await Auth.signIn(email, password);
+          showToast("Welcome back! Redirecting...");
+          
+          // Double check database is initialized
+          const user = await Auth.getUser();
+          if (user) {
+            await window.DB.ensureInitialized(user.id);
+          }
+
+          setTimeout(() => {
+            window.location.href = "dashboard.html";
+          }, 1000);
+        } else {
+          await Auth.signUp(email, password);
+          showToast("Account created successfully! Check your email or try signing in.");
+          isLoginMode = true;
+          subtitle.textContent = "Log in to organize your Moodle courses";
+          submitBtn.textContent = "Sign In";
+          footerText.textContent = "Don't have an account?";
+          toggleLink.textContent = "Sign Up";
+        }
+      } catch (err) {
+        console.error("Auth error:", err);
+        showToast(err.message || "An authentication error occurred.", true);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = isLoginMode ? "Sign In" : "Create Account";
+      }
+    });
+
+    // Register Service Worker for PWA with automatic controller reload on update
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            console.log('Service Worker registered successfully!', reg.scope);
+            
+            // Check for updates periodically
+            if (reg.active) {
+              reg.update();
+            }
+
+            // Listen for changes to service worker states
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('[PWA] New version installed. Activating...');
+                }
+              });
+            });
+          })
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+
+      // Force page reload when service worker takes control
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          console.log('[PWA] Service worker updated! Reloading...');
+          window.location.reload();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
