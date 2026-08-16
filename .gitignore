@@ -1,8 +1,7 @@
 # Dependencies
 node_modules/
 
-# Local configuration files containing credentials
-web/js/config.js
+
 
 # Vercel static cache directories
 .vercel/
