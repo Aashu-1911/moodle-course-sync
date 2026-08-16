@@ -575,20 +575,45 @@ input:checked + .slider:before {
 }
 
 .action-btn {
-  background: transparent;
-  border: 1px solid var(--bg-card-border);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   color: var(--text-primary);
-  padding: 8px 12px;
-  border-radius: var(--border-radius-md);
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   transition: var(--transition-smooth);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+body.dark-theme .action-btn {
+  background: #1e293b;
+  border-color: #334155;
 }
 
 .action-btn:hover {
+  background: var(--bg-card);
   border-color: var(--accent-blue);
   color: var(--accent-blue);
+}
+
+body.dark-theme .action-btn:hover {
+  background: #0f172a;
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+}
+
+body.dark-theme .action-btn:disabled {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: #334155 !important;
+  color: #64748b !important;
 }
 
 .action-btn.danger:hover {
