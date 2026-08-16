@@ -174,7 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Open the Web app dashboard in a new tab
   dashboardBtn.addEventListener("click", () => {
     chrome.storage.local.get(["supabase_web_app_url"], (data) => {
-      const url = data.supabase_web_app_url || "http://localhost:8000";
+      const url = data.supabase_web_app_url || "https://course-sync-eight.vercel.app";
       chrome.tabs.create({ url: `${url}/dashboard.html` });
     });
   });

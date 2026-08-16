@@ -118,7 +118,7 @@ async function validateAndSaveSession(payload) {
       "supabase_session": session,
       "supabase_url": url,
       "supabase_anon_key": anonKey,
-      "supabase_web_app_url": webAppUrl || "http://localhost:8000",
+      "supabase_web_app_url": webAppUrl || "https://course-sync-eight.vercel.app",
       "sync_status": "connected"
     });
 
