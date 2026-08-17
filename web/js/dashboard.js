@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const tab = document.createElement("div");
       tab.className = `semester-tab ${sem.id === selectedSemesterId ? 'active' : ''}`;
       tab.textContent = sem.name;
-      tab.addEventListener("click", async () => {
+      tab.addEventListener("click", () => {
         if (selectedSemesterId === sem.id) return;
         
         selectedSemesterId = sem.id;
@@ -280,16 +280,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Update active tab styles
         document.querySelectorAll(".semester-tab").forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
-
+        
         renderCourses();
-
-        // Update database: Make this selected tab the active "current" semester
-        try {
-          await DB.setCurrentSemester(user.id, sem.id);
-          showToast(`Switched active view to ${sem.name}`);
-        } catch (err) {
-          console.error("Error setting active semester:", err.message);
-        }
       });
       tabsContainer.appendChild(tab);
     });
