@@ -231,76 +231,102 @@ function injectSyncBanner(addedCount, isFirstSync = false) {
   setTimeout(() => banner.remove(), 6000);
 }
 
+// Helper to verify if extension context is still valid (not reloaded/invalidated)
+function isContextValid() {
+  return typeof chrome !== 'undefined' && chrome.runtime && !!chrome.runtime.id;
+}
+
+function safeStorageSet(items, callback) {
+  if (isContextValid()) {
+    chrome.storage.local.set(items, callback);
+  }
+}
+
+function safeStorageGet(keys, callback) {
+  if (isContextValid()) {
+    chrome.storage.local.get(keys, callback);
+  }
+}
+
 // 4. Synchronize courses back to Supabase Central database
 async function runSynchronization() {
   console.log("[Moodle Hub] Running scraper and sync routine...");
 
+  if (!isContextValid()) {
+    console.warn("[Moodle Hub] Extension context is invalidated. Please refresh the page to sync.");
+    return;
+  }
+
   // Retrieve auth credentials from background service worker coordinator
-  chrome.runtime.sendMessage({ action: "GET_SESSION" }, async (response) => {
-    if (!response || !response.success) {
-      chrome.storage.local.get(["supabase_url"], (data) => {
-        if (!data.supabase_url) {
-          console.warn("[Moodle Hub] Course Hub extension is not connected. Open the Course Hub dashboard and connect the extension.");
-        } else {
-          console.warn("[Moodle Hub] Course Hub session expired. Please reconnect the extension.");
-        }
-      });
-      chrome.storage.local.set({ "sync_status": "disconnected" });
-      return;
-    }
+  try {
+    chrome.runtime.sendMessage({ action: "GET_SESSION" }, async (response) => {
+      if (!isContextValid()) return;
+      
+      if (!response || !response.success) {
+        safeStorageGet(["supabase_url"], (data) => {
+          if (!isContextValid()) return;
+          if (!data.supabase_url) {
+            console.warn("[Moodle Hub] Course Hub extension is not connected. Open the Course Hub dashboard and connect the extension.");
+          } else {
+            console.warn("[Moodle Hub] Course Hub session expired. Please reconnect the extension.");
+          }
+        });
+        safeStorageSet({ "sync_status": "disconnected" });
+        return;
+      }
 
-    const session = response.session;
-    const url = response.url;
-    const anonKey = response.anonKey;
+      const session = response.session;
+      const url = response.url;
+      const anonKey = response.anonKey;
 
-    // Initialize client
-    if (typeof supabase === 'undefined') {
-      console.error("[Moodle Hub] Supabase client script not loaded.");
-      return;
-    }
+      // Initialize client
+      if (typeof supabase === 'undefined') {
+        console.error("[Moodle Hub] Supabase client script not loaded.");
+        return;
+      }
 
-    if (!globalSupabaseClient) {
-      globalSupabaseClient = supabase.createClient(url, anonKey);
-    }
-    const client = globalSupabaseClient;
-    let authError = null;
-    try {
-      const { error } = await client.auth.setSession({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token
-      });
-      authError = error;
-    } catch (fetchErr) {
-      console.warn("[Moodle Hub] Network error setting Supabase session:", fetchErr.message);
-      chrome.storage.local.set({ "sync_status": "network_error" });
-      return;
-    }
+      if (!globalSupabaseClient) {
+        globalSupabaseClient = supabase.createClient(url, anonKey);
+      }
+      const client = globalSupabaseClient;
+      let authError = null;
+      try {
+        const { error } = await client.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
+        });
+        authError = error;
+      } catch (fetchErr) {
+        console.warn("[Moodle Hub] Network error setting Supabase session:", fetchErr.message);
+        safeStorageSet({ "sync_status": "network_error" });
+        return;
+      }
 
-    if (authError) {
-      console.error("[Moodle Hub] Failed to re-authenticate session:", authError.message);
-      chrome.storage.local.set({ "sync_status": "auth_expired" });
-      return;
-    }
+      if (authError) {
+        console.error("[Moodle Hub] Failed to re-authenticate session:", authError.message);
+        safeStorageSet({ "sync_status": "auth_expired" });
+        return;
+      }
 
-    const user = session.user;
-    
-    // Scrape and normalize courses
-    const rawCourses = extractMoodleCourses();
-    const detectedCourses = normalizeMoodleCourses(rawCourses);
+      const user = session.user;
+      
+      // Scrape and normalize courses
+      const rawCourses = extractMoodleCourses();
+      const detectedCourses = normalizeMoodleCourses(rawCourses);
 
-    if (detectedCourses.length === 0) {
-      console.log("[Moodle Hub] No valid courses found on this page.");
-      chrome.storage.local.set({
-        "last_sync_time": new Date().toLocaleString(),
-        "detected_count": 0,
-        "existing_count": 0,
-        "added_count": 0,
-        "sync_status": "no_courses"
-      }, () => {
-        renderMoodleHubUI(client, user);
-      });
-      return;
-    }
+      if (detectedCourses.length === 0) {
+        console.log("[Moodle Hub] No valid courses found on this page.");
+        safeStorageSet({
+          "last_sync_time": new Date().toLocaleString(),
+          "detected_count": 0,
+          "existing_count": 0,
+          "added_count": 0,
+          "sync_status": "no_courses"
+        }, () => {
+          renderMoodleHubUI(client, user);
+        });
+        return;
+      }
 
     try {
       // 1. Fetch user settings to obtain current semester and auto-assign settings
@@ -483,7 +509,7 @@ async function runSynchronization() {
         console.warn("[Moodle Hub] Failed to sync report to database settings:", settingsUpdateErr.message);
       }
 
-      chrome.storage.local.set({
+      safeStorageSet({
         "last_sync_time": new Date().toLocaleString(),
         "detected_count": detectedCount,
         "existing_count": existingCount,
@@ -493,6 +519,7 @@ async function runSynchronization() {
         "errors_count": errorsCount,
         "sync_status": "connected"
       }, () => {
+        if (!isContextValid()) return;
         console.log(`[Moodle Hub] Synchronization complete. ${syncMessage}`);
         injectSyncBanner(addedCount + unassignedCount);
         renderMoodleHubUI(client, user);
@@ -515,9 +542,12 @@ async function runSynchronization() {
         console.warn("[Moodle Hub] Failed to sync error to database settings:", settingsErrUpdate.message);
       }
 
-      chrome.storage.local.set({ "sync_status": "error" });
+      safeStorageSet({ "sync_status": "error" });
     }
   });
+  } catch (outerErr) {
+    console.warn("[Moodle Hub] Synchronization skipped due to context or messaging error:", outerErr.message);
+  }
 }
 
 // 6. Dynamically render customized Moodle Course Hub Dashboard directly inside Moodle Portal (Phase 8)
