@@ -32,11 +32,20 @@ document.addEventListener("DOMContentLoaded", () => {
         notificationBlock.style.display = "none";
 
         // Retrieve config from storage to make requests
-        supabaseClient = supabase.createClient(response.url, response.anonKey);
-        await supabaseClient.auth.setSession({
-          access_token: response.session.access_token,
-          refresh_token: response.session.refresh_token
-        });
+        try {
+          supabaseClient = supabase.createClient(response.url, response.anonKey);
+          await supabaseClient.auth.setSession({
+            access_token: response.session.access_token,
+            refresh_token: response.session.refresh_token
+          });
+        } catch (authErr) {
+          console.warn("[Moodle Hub Popup] Auth connection failed:", authErr.message);
+          statusCard.className = "status-card disconnected";
+          statusTitle.textContent = "Offline Mode";
+          statusDesc.textContent = "Cannot reach server. Sync is disabled.";
+          syncBtn.disabled = true;
+          return;
+        }
 
         // Fetch the active target semester name
         fetchTargetSemester(response.session.user.id);

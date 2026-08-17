@@ -263,10 +263,18 @@ async function runSynchronization() {
       globalSupabaseClient = supabase.createClient(url, anonKey);
     }
     const client = globalSupabaseClient;
-    const { error: authError } = await client.auth.setSession({
-      access_token: session.access_token,
-      refresh_token: session.refresh_token
-    });
+    let authError = null;
+    try {
+      const { error } = await client.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token
+      });
+      authError = error;
+    } catch (fetchErr) {
+      console.warn("[Moodle Hub] Network error setting Supabase session:", fetchErr.message);
+      chrome.storage.local.set({ "sync_status": "network_error" });
+      return;
+    }
 
     if (authError) {
       console.error("[Moodle Hub] Failed to re-authenticate session:", authError.message);
@@ -330,7 +338,7 @@ async function runSynchronization() {
       if (dbCoursesError) throw dbCoursesError;
 
       const existingCourses = dbCourses || [];
-      const existingMap = new Map(existingCourses.map(c => [c.moodle_course_id, c]));
+      const existingMap = new Map(existingCourses.map(c => [c.moodle_course_id ? c.moodle_course_id.toString() : "", c]));
 
       // Determine if this is the first sync (no courses currently exist in the database)
       const isFirstSync = (existingCourses.length === 0);
@@ -442,7 +450,8 @@ async function runSynchronization() {
 
       // 4. Inactive course detection (Phase 13)
       for (const dbCourse of existingCourses) {
-        if (!detectedIds.has(dbCourse.moodle_course_id) && dbCourse.is_moodle_active) {
+        const courseIdStr = dbCourse.moodle_course_id ? dbCourse.moodle_course_id.toString() : "";
+        if (!detectedIds.has(courseIdStr) && dbCourse.is_moodle_active) {
           console.log(`[Moodle Hub] Marking course as inactive (not seen on Moodle): ${dbCourse.name}`);
           const { error: inactiveErr } = await client
             .from('courses')
