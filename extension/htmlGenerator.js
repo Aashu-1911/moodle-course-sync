@@ -158,27 +158,44 @@ function generateMoodleStaticHTML(courses, semesters, settings, userEmail) {
             }
           }
 
+          let cardBg = "#ffffff";
+          if (tagLabel === "CORE SUBJECT") {
+            cardBg = "#ffffff linear-gradient(to right, #ffffff 70%, #faf9fe 100%)";
+          } else if (tagLabel === "LAB COURSE") {
+            cardBg = "#ffffff linear-gradient(to right, #ffffff 70%, #fef9fc 100%)";
+          } else if (tagLabel === "PROJECT") {
+            cardBg = "#ffffff linear-gradient(to right, #ffffff 70%, #f9fdfb 100%)";
+          } else if (tagLabel === "FOUNDATION") {
+            cardBg = "#ffffff linear-gradient(to right, #ffffff 70%, #f9fbfd 100%)";
+          } else if (tagLabel === "MANDATORY") {
+            cardBg = "#ffffff linear-gradient(to right, #ffffff 70%, #fdfaf9 100%)";
+          } else if (tagLabel === "OPEN ELECTIVE") {
+            cardBg = "#ffffff linear-gradient(to right, #ffffff 70%, #f9fdfb 100%)";
+          } else {
+            cardBg = "#ffffff linear-gradient(to right, #ffffff 70%, #f9fdfb 100%)";
+          }
+
           const cleanLink = isValidUrl(c.url) ? c.url : "#";
 
           cardsHtml += `
-            <a href="${escapeHTML(cleanLink)}" target="_blank" rel="noopener" style="display: flex; justify-content: space-between; align-items: center; flex: 1 1 260px; box-sizing: border-box; padding: 12px 14px; background: #ffffff; color: #1e293b; text-decoration: none !important; border: 1px solid ${borderColor}; border-radius: 10px; box-shadow: 0 2px 6px rgba(15,23,42,0.03); font-family: Segoe UI,Arial,sans-serif; margin: 4px; ${c.is_moodle_active ? '' : 'opacity: 0.6;'}">
+            <a href="${escapeHTML(cleanLink)}" target="_blank" rel="noopener" style="display: flex; justify-content: space-between; align-items: center; flex: 1 1 260px; box-sizing: border-box; padding: 14px 16px; background: ${cardBg}; color: #1e293b; text-decoration: none !important; border: 1px solid ${borderColor}; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,0.02); font-family: Segoe UI,Arial,sans-serif; margin: 4px; transition: all 0.2s ease; ${c.is_moodle_active ? '' : 'opacity: 0.5;'}" class="ashish-course-card-link">
               <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; margin-right: 12px;">
                 <div style="font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: Segoe UI,Arial,sans-serif;">
                   ${escapeHTML(cleanCourseTitle(c.display_name))}
                 </div>
-                <div style="font-size: 10px; font-weight: 800; color: ${themeColor}; text-transform: uppercase; letter-spacing: 0.06em; font-family: Segoe UI,Arial,sans-serif;">
+                <div style="font-size: 9px; font-weight: 800; color: ${themeColor}; text-transform: uppercase; letter-spacing: 0.06em; font-family: Segoe UI,Arial,sans-serif; background: ${btnBg}; padding: 2px 8px; border-radius: 20px; width: fit-content; margin-top: 4px;">
                   ${tagLabel}
                 </div>
               </div>
-              <div style="width: 24px; height: 24px; border-radius: 50%; background: ${btnBg}; color: ${themeColor}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; flex-shrink: 0;">
+              <div style="width: 24px; height: 24px; border-radius: 50%; background: ${themeColor}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0; box-shadow: 0 2px 8px ${borderColor};">
                 →
               </div>
             </a>`;
         });
 
         return `
-          <div style="margin-bottom: 20px;">
-            <div style="font-family: Segoe UI,Arial,sans-serif; font-size: 13px; font-weight: 700; color: #1e293b; padding-left: 8px; border-left: 3px solid #3b82f6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">
+          <div style="margin-bottom: 24px;">
+            <div style="font-family: Segoe UI,Arial,sans-serif; font-size: 12px; font-weight: 800; color: #475569; padding-left: 8px; border-left: 4px solid #6366f1; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">
               ${icon} ${catTitle} (${catCourses.length})
             </div>
             <div style="display: flex; flex-wrap: wrap; gap: 10px; width: 100%; box-sizing: border-box;">
@@ -193,10 +210,13 @@ function generateMoodleStaticHTML(courses, semesters, settings, userEmail) {
     }
 
     semestersHtml += `
-      <details style="margin-bottom: 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,0.01); overflow: hidden; width: 100%; box-sizing: border-box;" ${isActive ? 'open' : ''}>
-        <summary style="cursor: pointer; padding: 14px 18px; background: #e2e8f0; color: #334155; font-weight: 700; font-size: 14px; font-family: Segoe UI,Arial,sans-serif; display: flex; justify-content: space-between; align-items: center; outline: none; user-select: none;">
-          <span>${escapeHTML(sem.name)}</span>
-          <span style="font-size: 11px; color: #64748b; font-weight: normal;">Click to expand/collapse</span>
+      <details style="margin-bottom: 12px; background: #ffffff; border: 1px solid ${isActive ? 'rgba(99,102,241,0.2)' : '#e2e8f0'}; border-radius: 12px; box-shadow: ${isActive ? '0 4px 20px rgba(99,102,241,0.04)' : '0 4px 12px rgba(15,23,42,0.01)'}; overflow: hidden; width: 100%; box-sizing: border-box;" ${isActive ? 'open' : ''}>
+        <summary style="cursor: pointer; padding: 14px 18px; background: ${isActive ? 'linear-gradient(135deg, #f5f3ff 0%, #fdf2f8 100%)' : '#f1f5f9'}; color: ${isActive ? '#6366f1' : '#475569'}; font-weight: 700; font-size: 14px; font-family: Segoe UI,Arial,sans-serif; display: flex; justify-content: space-between; align-items: center; outline: none; user-select: none; border-bottom: 1px solid ${isActive ? 'rgba(99,102,241,0.1)' : '#e2e8f0'};">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span>${escapeHTML(sem.name)}</span>
+            ${isActive ? `<span style="background: linear-gradient(135deg, #6366f1, #d946ef); color: #ffffff; font-size: 9px; padding: 2px 8px; border-radius: 20px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; font-family: Segoe UI,Arial,sans-serif; display: inline-block;">Active Target</span>` : ''}
+          </div>
+          <span style="font-size: 11px; color: ${isActive ? '#818cf8' : '#64748b'}; font-weight: normal;">Click to expand/collapse</span>
         </summary>
         <div style="padding: 20px 24px; box-sizing: border-box; background: #ffffff;">
           ${semContent}
@@ -223,9 +243,9 @@ function generateMoodleStaticHTML(courses, semesters, settings, userEmail) {
   // Generate output Moodle-ready structure
   const staticHtml = `
 <!-- Moodle Course Hub Card Block -->
-<div class="ashish-course-hub" id="moodle-course-hub-container" style="width: 100%; max-width: 900px; margin: 20px auto; padding: 20px 24px; box-sizing: border-box; background: #f8fafc linear-gradient(135deg, rgba(99,102,241,0.01) 0%, rgba(217,70,239,0.01) 100%); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 6px 20px rgba(15,23,42,0.05); font-family: Segoe UI,Arial,sans-serif; color: #0f172a; position: relative; overflow: hidden;">
+<div class="ashish-course-hub" id="moodle-course-hub-container" style="width: 100%; max-width: 900px; margin: 20px auto; padding: 24px; box-sizing: border-box; background: #ffffff; border-top: 4px solid #6366f1; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.03), 0 2px 10px rgba(0,0,0,0.01); font-family: Segoe UI,Arial,sans-serif; color: #0f172a; position: relative; overflow: hidden;">
   <div style="position: relative; z-index: 1; margin-bottom: 24px; font-family: Segoe UI,Arial,sans-serif;">
-    <div style="font-size: 26px; line-height: 1.2; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; font-family: Segoe UI,Arial,sans-serif;">
+    <div style="font-size: 28px; line-height: 1.2; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block; margin: 0 0 6px 0; font-family: Segoe UI,Arial,sans-serif;">
       ${escapeHTML(titleText)}
     </div>
     <div style="font-size: 14px; line-height: 1.4; color: #64748b; font-family: Segoe UI,Arial,sans-serif;">
@@ -237,7 +257,7 @@ function generateMoodleStaticHTML(courses, semesters, settings, userEmail) {
     ${semestersHtml}
   </div>
 
-  <div style="margin-top: 30px; background: #f5f3ff; border: 1px solid rgba(139,92,246,0.08); padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;">
+  <div style="margin-top: 32px; background: linear-gradient(135deg, #f5f3ff 0%, #fef2f2 100%); border: 1px solid rgba(139,92,246,0.08); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(139,92,246,0.02);">
     <span style="font-size: 16px;">🎓</span>
     <span style="font-size: 13px; font-weight: 600; color: #6d28d9; font-style: italic; font-family: Segoe UI,Arial,sans-serif; text-align: center;">
       Stay consistent, keep learning, and make it count.
