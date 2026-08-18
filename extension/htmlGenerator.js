@@ -211,10 +211,10 @@ function generateMoodleStaticHTML(courses, semesters, settings, userEmail) {
 
     semestersHtml += `
       <details style="margin-bottom: 12px; background: #ffffff; border: 1px solid ${isActive ? 'rgba(99,102,241,0.2)' : '#e2e8f0'}; border-radius: 12px; box-shadow: ${isActive ? '0 4px 20px rgba(99,102,241,0.04)' : '0 4px 12px rgba(15,23,42,0.01)'}; overflow: hidden; width: 100%; box-sizing: border-box;" ${isActive ? 'open' : ''}>
-        <summary style="cursor: pointer; padding: 14px 18px; background: ${isActive ? 'linear-gradient(135deg, #f5f3ff 0%, #fdf2f8 100%)' : '#f1f5f9'}; color: ${isActive ? '#6366f1' : '#475569'}; font-weight: 700; font-size: 14px; font-family: Segoe UI,Arial,sans-serif; display: flex; justify-content: space-between; align-items: center; outline: none; user-select: none; border-bottom: 1px solid ${isActive ? 'rgba(99,102,241,0.1)' : '#e2e8f0'};">
+        <summary style="cursor: pointer; padding: 14px 18px; background: ${isActive ? '#f5f3ff' : '#f1f5f9'}; color: ${isActive ? '#6366f1' : '#475569'}; font-weight: 700; font-size: 14px; font-family: Segoe UI,Arial,sans-serif; display: flex; justify-content: space-between; align-items: center; outline: none; user-select: none; border-bottom: 1px solid ${isActive ? 'rgba(99,102,241,0.1)' : '#e2e8f0'};">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span>${escapeHTML(sem.name)}</span>
-            ${isActive ? `<span style="background: linear-gradient(135deg, #6366f1, #d946ef); color: #ffffff; font-size: 9px; padding: 2px 8px; border-radius: 20px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; font-family: Segoe UI,Arial,sans-serif; display: inline-block;">Active Target</span>` : ''}
+            ${isActive ? `<span style="background: #6366f1; color: #ffffff; font-size: 9px; padding: 2px 8px; border-radius: 20px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; font-family: Segoe UI,Arial,sans-serif; display: inline-block;">Active Target</span>` : ''}
           </div>
           <span style="font-size: 11px; color: ${isActive ? '#818cf8' : '#64748b'}; font-weight: normal;">Click to expand/collapse</span>
         </summary>
@@ -245,7 +245,7 @@ function generateMoodleStaticHTML(courses, semesters, settings, userEmail) {
 <!-- Moodle Course Hub Card Block -->
 <div class="ashish-course-hub" id="moodle-course-hub-container" style="width: 100%; max-width: 900px; margin: 20px auto; padding: 24px; box-sizing: border-box; background: #ffffff; border-top: 4px solid #6366f1; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.03), 0 2px 10px rgba(0,0,0,0.01); font-family: Segoe UI,Arial,sans-serif; color: #0f172a; position: relative; overflow: hidden;">
   <div style="position: relative; z-index: 1; margin-bottom: 24px; font-family: Segoe UI,Arial,sans-serif;">
-    <div style="font-size: 28px; line-height: 1.2; font-weight: 800; background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block; margin: 0 0 6px 0; font-family: Segoe UI,Arial,sans-serif;">
+    <div style="font-size: 28px; line-height: 1.2; font-weight: 800; color: #6366f1; display: inline-block; margin: 0 0 6px 0; font-family: Segoe UI,Arial,sans-serif;">
       ${escapeHTML(titleText)}
     </div>
     <div style="font-size: 14px; line-height: 1.4; color: #64748b; font-family: Segoe UI,Arial,sans-serif;">
@@ -257,7 +257,7 @@ function generateMoodleStaticHTML(courses, semesters, settings, userEmail) {
     ${semestersHtml}
   </div>
 
-  <div style="margin-top: 32px; background: linear-gradient(135deg, #f5f3ff 0%, #fef2f2 100%); border: 1px solid rgba(139,92,246,0.08); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(139,92,246,0.02);">
+  <div style="margin-top: 32px; background: #f5f3ff; border: 1px solid rgba(139,92,246,0.08); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(139,92,246,0.02);">
     <span style="font-size: 16px;">🎓</span>
     <span style="font-size: 13px; font-weight: 600; color: #6d28d9; font-style: italic; font-family: Segoe UI,Arial,sans-serif; text-align: center;">
       Stay consistent, keep learning, and make it count.
