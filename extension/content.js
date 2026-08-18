@@ -248,6 +248,16 @@ function safeStorageGet(keys, callback) {
   }
 }
 
+function getHtmlHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  return hash.toString(36);
+}
+
 // 4. Synchronize courses back to Supabase Central database
 async function runSynchronization() {
   console.log("[Moodle Hub] Running scraper and sync routine...");
@@ -507,6 +517,58 @@ async function runSynchronization() {
           .eq('user_id', user.id);
       } catch (settingsUpdateErr) {
         console.warn("[Moodle Hub] Failed to sync report to database settings:", settingsUpdateErr.message);
+      }
+
+      // Re-fetch latest courses, semesters and settings to ensure accurate HTML generation
+      let coursesToUse = [];
+      let semestersToUse = [];
+      let settingsToUse = settings;
+      try {
+        const [upCourses, upSems, upSet] = await Promise.all([
+          client.from('courses').select('*').eq('user_id', user.id).order('position', { ascending: true }),
+          client.from('semesters').select('*').eq('user_id', user.id).order('semester_number', { ascending: true }),
+          client.from('settings').select('*').eq('user_id', user.id).maybeSingle()
+        ]);
+        if (upCourses.data) coursesToUse = upCourses.data;
+        if (upSems.data) semestersToUse = upSems.data;
+        if (upSet.data) settingsToUse = upSet.data;
+      } catch (refetchErr) {
+        console.warn("[Moodle Hub] Failed to re-fetch database for HTML generation:", refetchErr.message);
+      }
+
+      try {
+        const generatedHtml = generateMoodleCourseHubHTML(coursesToUse, semestersToUse, settingsToUse, user?.email);
+        const newHash = getHtmlHash(generatedHtml);
+        const lastGenTime = new Date().toLocaleString();
+
+        safeStorageGet(["htmlHash", "newly_detected_courses"], (storeData) => {
+          if (!isContextValid()) return;
+          const oldHash = storeData?.htmlHash;
+          const isChanged = (oldHash !== newHash);
+
+          const updatesToStore = {
+            "htmlHash": newHash,
+            "last_generated_at": lastGenTime
+          };
+
+          if (isChanged) {
+            updatesToStore.html_updated = true;
+            
+            if (addedCount > 0 || unassignedCount > 0) {
+              const prevNewlyScraped = storeData?.newly_detected_courses || [];
+              const newlyScrapedNames = detectedCourses
+                .filter(dc => !existingMap.has(dc.moodleCourseId))
+                .map(dc => dc.name);
+              
+              const combined = Array.from(new Set([...prevNewlyScraped, ...newlyScrapedNames]));
+              updatesToStore.newly_detected_courses = combined;
+            }
+          }
+
+          safeStorageSet(updatesToStore);
+        });
+      } catch (genErr) {
+        console.error("[Moodle Hub] HTML Generation failed during sync:", genErr.message);
       }
 
       safeStorageSet({

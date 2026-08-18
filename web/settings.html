@@ -138,6 +138,34 @@
         <!-- Rendered courses go here -->
       </div>
     </div>
+
+    <!-- Moodle Block HTML Export Section -->
+    <div class="glass-panel settings-section">
+      <h2>📄 Moodle Block HTML Export</h2>
+      <p style="font-size: 0.85rem; color: #64748b; margin-top: -12px; margin-bottom: 20px; line-height: 1.4;">
+        Export your current course directory layout as a self-contained Moodle block. Paste this HTML into Moodle's text block Source Code editor to show your dashboard without the extension.
+      </p>
+
+      <div class="settings-row" style="border-bottom: none; padding-bottom: 0; align-items: stretch; flex-direction: column; gap: 16px;">
+        <div style="width: 100%; font-size: 0.85rem; color: var(--text-secondary);">
+          <strong>Status:</strong> <span id="website-html-status">HTML generated successfully</span><br>
+          <span style="font-size: 0.75rem; color: #94a3b8;" id="website-html-time">Last generated: Never</span>
+        </div>
+
+        <div style="display: flex; gap: 12px; width: 100%; justify-content: flex-start; flex-wrap: wrap;">
+          <button id="btn-web-copy-html" class="btn-secondary" style="padding: 10px 20px; width: auto; font-size: 0.9rem;">Copy HTML</button>
+          <button id="btn-web-download-html" class="btn-primary" style="padding: 10px 20px; width: auto; font-size: 0.9rem;">Download HTML</button>
+        </div>
+
+        <!-- Preview Block (Accurate visual display) -->
+        <div style="width: 100%; margin-top: 16px; border-top: 1px solid var(--bg-card-border); padding-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <div class="settings-title" style="margin-bottom: 0;">Moodle Block Preview</div>
+          <div id="moodle-html-preview-frame" style="width: 100%; box-sizing: border-box; overflow: auto; min-height: 100px;">
+            <!-- Simulated preview goes here -->
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Create/Rename Semester Modal -->
@@ -230,6 +258,7 @@
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/db.js"></script>
+  <script src="js/htmlGenerator.js"></script>
   <script src="js/settings.js"></script>
   <script>
     // Register Service Worker for PWA with automatic controller reload on update

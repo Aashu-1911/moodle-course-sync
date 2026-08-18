@@ -24,7 +24,7 @@
   "content_scripts": [
     {
       "matches": ["http://moodle.mitaoe.ac.in/*"],
-      "js": ["supabase.js", "content.js"],
+      "js": ["supabase.js", "htmlGenerator.js", "content.js"],
       "run_at": "document_end"
     },
     {

@@ -256,6 +256,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         semestersContainer.appendChild(itemDiv);
       });
+      renderMoodleHTMLExport();
   }
 
   // Populate semester selects in general settings and filters
@@ -530,6 +531,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       coursesContainer.appendChild(itemDiv);
     });
+    renderMoodleHTMLExport();
   }
 
   // Modals Save and Close Handlers
@@ -807,6 +809,76 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
+
+  // HTML Export generation & preview
+  const btnWebCopyHtml = document.getElementById("btn-web-copy-html");
+  const btnWebDownloadHtml = document.getElementById("btn-web-download-html");
+  const websiteHtmlTime = document.getElementById("website-html-time");
+  const moodleHtmlPreviewFrame = document.getElementById("moodle-html-preview-frame");
+
+  function renderMoodleHTMLExport() {
+    if (!allCourses || !allSemesters) return;
+    try {
+      const generatedHtml = generateMoodleCourseHubHTML(allCourses, allSemesters, userSettings, user?.email);
+      moodleHtmlPreviewFrame.innerHTML = generatedHtml;
+      
+      // Bind tabs event listeners inside preview card
+      const tabs = moodleHtmlPreviewFrame.querySelectorAll(".hub-tab-v2");
+      const grids = moodleHtmlPreviewFrame.querySelectorAll(".hub-semester-grid");
+      const emptyStates = moodleHtmlPreviewFrame.querySelectorAll(".hub-empty-state");
+
+      tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+          const activeId = tab.getAttribute("data-sem-id");
+          tabs.forEach(t => t.classList.remove("active"));
+          tab.classList.add("active");
+
+          grids.forEach(grid => {
+            grid.style.display = (grid.getAttribute("id") === "sem-grid-" + activeId) ? "block" : "none";
+          });
+
+          emptyStates.forEach(empty => {
+            empty.style.display = (empty.getAttribute("id") === "sem-empty-" + activeId) ? "block" : "none";
+          });
+        });
+      });
+
+      const timeStr = new Date().toLocaleString();
+      websiteHtmlTime.textContent = `Last generated: ${timeStr}`;
+      document.getElementById("website-html-status").textContent = "HTML generated successfully";
+    } catch (err) {
+      console.error("HTML Export generation failed:", err);
+      document.getElementById("website-html-status").textContent = "Generation failed";
+    }
+  }
+
+  btnWebCopyHtml.addEventListener("click", () => {
+    try {
+      const htmlStr = generateMoodleCourseHubHTML(allCourses, allSemesters, userSettings, user?.email);
+      navigator.clipboard.writeText(htmlStr);
+      showToast("Moodle HTML copied to clipboard!");
+    } catch (err) {
+      showToast("Copy failed.", true);
+    }
+  });
+
+  btnWebDownloadHtml.addEventListener("click", () => {
+    try {
+      const htmlStr = generateMoodleCourseHubHTML(allCourses, allSemesters, userSettings, user?.email);
+      const blob = new Blob([htmlStr], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ashish-moodle-courses.html";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("HTML file download triggered.");
+    } catch (err) {
+      showToast("Download failed.", true);
+    }
+  });
 
   // Load configurations
   loadData();

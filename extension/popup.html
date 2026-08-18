@@ -49,8 +49,28 @@
       </div>
     </div>
 
-    <!-- Notification message block -->
-    <div id="notification-block" class="notification-text" style="display: none;"></div>
+    <!-- New course notification block -->
+    <div id="new-course-notify" class="notify-card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span class="notify-title">🎉 New course(s) detected</span>
+        <button id="close-notify-btn" style="background:transparent; border:none; color:var(--text-sub); font-size:1rem; cursor:pointer; padding:0 4px; line-height:1;">✕</button>
+      </div>
+      <div id="new-courses-list" class="notify-list"></div>
+      <div id="new-course-assigned" class="notify-assign">Assigned to Target Semester</div>
+      <div class="actions-wrapper" style="margin-top: 8px; margin-bottom: 0;">
+        <button id="btn-download-new-html" class="btn-primary" style="padding: 6px 12px; font-size: 0.75rem; width: 100%;">Download Updated HTML</button>
+      </div>
+    </div>
+
+    <!-- HTML Export Console Block -->
+    <div id="html-export-section" class="export-panel">
+      <h2 style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin: 0 0 6px 0; border-bottom: 1px solid var(--bg-border); padding-bottom: 6px; display: flex; align-items: center; gap: 6px;">📄 Moodle HTML Export</h2>
+      <div id="html-status-desc" style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 10px;">✓ HTML ready</div>
+      <div class="actions-wrapper" style="gap: 8px; margin-top: 0;">
+        <button id="btn-copy-html" class="btn-secondary" style="flex: 1; padding: 8px 10px; font-size: 0.78rem;">Copy HTML</button>
+        <button id="btn-download-html" class="btn-primary" style="flex: 1; padding: 8px 10px; font-size: 0.78rem;">Download HTML</button>
+      </div>
+    </div>
 
     <!-- Actions -->
     <div class="actions-wrapper">
@@ -60,6 +80,7 @@
   </div>
 
   <script src="supabase.js"></script>
+  <script src="htmlGenerator.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
