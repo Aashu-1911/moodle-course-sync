@@ -1,5 +1,5 @@
 // Moodle Course Hub - PWA Service Worker
-const CACHE_NAME = 'moodle-course-hub-v15';
+const CACHE_NAME = 'moodle-course-hub-v16';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
