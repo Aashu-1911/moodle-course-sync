@@ -178,7 +178,7 @@ function generateMoodleStaticHTML(courses, semesters, settings, userEmail) {
           const cleanLink = isValidUrl(c.url) ? c.url : "#";
 
           cardsHtml += `
-            <a href="${escapeHTML(cleanLink)}" target="_blank" rel="noopener" style="display: flex; justify-content: space-between; align-items: center; flex: 1 1 260px; box-sizing: border-box; padding: 14px 16px; background: ${cardBg}; color: #1e293b; text-decoration: none !important; border: 1px solid ${borderColor}; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,0.02); font-family: Segoe UI,Arial,sans-serif; margin: 4px; transition: all 0.2s ease; ${c.is_moodle_active ? '' : 'opacity: 0.5;'}" class="ashish-course-card-link">
+            <a href="${escapeHTML(cleanLink)}" style="display: flex; justify-content: space-between; align-items: center; flex: 1 1 260px; box-sizing: border-box; padding: 14px 16px; background: ${cardBg}; color: #1e293b; text-decoration: none !important; border: 1px solid ${borderColor}; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,0.02); font-family: Segoe UI,Arial,sans-serif; margin: 4px; transition: all 0.2s ease; ${c.is_moodle_active ? '' : 'opacity: 0.5;'}" class="ashish-course-card-link">
               <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; margin-right: 12px;">
                 <div style="font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: Segoe UI,Arial,sans-serif;">
                   ${escapeHTML(cleanCourseTitle(c.display_name))}

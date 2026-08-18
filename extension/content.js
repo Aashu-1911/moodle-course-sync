@@ -1144,7 +1144,7 @@ async function renderMoodleHubUI(client, user) {
           courses.forEach((c, idx) => {
             const card = document.createElement("a");
             card.href = c.url;
-            card.target = "_blank";
+            card.target = "_self";
 
             // Dynamic category themes based on manual overrides
             const cName = c.name.toLowerCase();
