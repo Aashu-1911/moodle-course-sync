@@ -663,6 +663,7 @@ async function renderMoodleHubUI(client, user) {
       customPanel.id = "moodle-course-hub-container";
       moodleContainer.parentNode.insertBefore(customPanel, moodleContainer);
     }
+    customPanel.className = "ashish-course-hub";
 
     // Inject stylesheet once
     if (!document.getElementById("moodle-hub-styles")) {
