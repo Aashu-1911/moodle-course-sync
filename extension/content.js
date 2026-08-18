@@ -537,7 +537,7 @@ async function runSynchronization() {
       }
 
       try {
-        const generatedHtml = generateMoodleCourseHubHTML(coursesToUse, semestersToUse, settingsToUse, user?.email);
+        const generatedHtml = generateMoodleStaticHTML(coursesToUse, semestersToUse, settingsToUse, user?.email);
         const newHash = getHtmlHash(generatedHtml);
         const lastGenTime = new Date().toLocaleString();
 

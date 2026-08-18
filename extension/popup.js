@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function triggerDownloadHtml() {
     if (!currentCourses || !currentSemesters) return;
     try {
-      const htmlStr = generateMoodleCourseHubHTML(currentCourses, currentSemesters, currentSettings, currentUserEmail);
+      const htmlStr = generateMoodleStaticHTML(currentCourses, currentSemesters, currentSettings, currentUserEmail);
       const blob = new Blob([htmlStr], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -276,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function triggerCopyHtml() {
     if (!currentCourses || !currentSemesters) return;
     try {
-      const htmlStr = generateMoodleCourseHubHTML(currentCourses, currentSemesters, currentSettings, currentUserEmail);
+      const htmlStr = generateMoodleStaticHTML(currentCourses, currentSemesters, currentSettings, currentUserEmail);
       navigator.clipboard.writeText(htmlStr);
       
       const descLabel = document.getElementById("html-status-desc");

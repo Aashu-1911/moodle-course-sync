@@ -1,5 +1,7 @@
-// Centralized HTML Generator for Moodle Course Hub Block
-function generateMoodleCourseHubHTML(courses, semesters, settings, userEmail) {
+// Centralized HTML Generator for Moodle Course Hub Block (PWA & Extension Shared)
+
+// 1. Static Moodle-Safe HTML Exporter (Pure Inline CSS, Details/Summary, No CSS classes/style/script)
+function generateMoodleStaticHTML(courses, semesters, settings, userEmail) {
   // Determine username
   const email = userEmail || "";
   let username = email ? email.split('@')[0] : "Ashish";
@@ -15,7 +17,7 @@ function generateMoodleCourseHubHTML(courses, semesters, settings, userEmail) {
     .sort((a, b) => a.semester_number - b.semester_number);
 
   if (visibleSemesters.length === 0) {
-    return `<div style="padding:20px; text-align:center; color:#64748b;">No active semesters configured.</div>`;
+    return `<div style="padding:20px; text-align:center; color:#64748b; font-family:Segoe UI,Arial,sans-serif;">No active semesters configured.</div>`;
   }
 
   // Determine active semester ID
@@ -51,539 +53,215 @@ function generateMoodleCourseHubHTML(courses, semesters, settings, userEmail) {
   const isValidUrl = (urlStr) => {
     if (!urlStr) return false;
     const lower = urlStr.trim().toLowerCase();
-    if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
+    if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
       return false;
     }
     return true;
   };
 
-  // Build tabs HTML
-  let tabsHtml = "";
-  visibleSemesters.forEach(sem => {
-    const isActive = sem.id === activeSemId;
-    tabsHtml += `
-      <div class="hub-tab-v2 ${isActive ? 'active' : ''}" data-sem-id="${sem.id}">
-        ${escapeHTML(sem.name)}
-      </div>`;
-  });
-
-  // Build semester course grids HTML
-  let gridsHtml = "";
+  // Build semesters list html using native details and summary elements
+  let semestersHtml = "";
   visibleSemesters.forEach(sem => {
     const isActive = sem.id === activeSemId;
     const semCourses = courses
       .filter(c => c.semester_id === sem.id && !c.is_hidden)
       .sort((a, b) => a.position - b.position);
 
-    // If no courses in this semester, show empty state
+    let semContent = "";
     if (semCourses.length === 0) {
-      gridsHtml += `
-        <div class="hub-empty-state" id="sem-empty-${sem.id}" style="display: ${isActive ? 'block' : 'none'}; text-align: center; padding: 32px; color: #64748b; font-size: 0.95rem;">
+      semContent = `
+        <div style="text-align: center; padding: 24px; color: #64748b; font-size: 14px; font-family: Segoe UI,Arial,sans-serif;">
           No courses configured for this semester. Manage mapping in the Web Hub.
         </div>`;
-      return;
-    }
+    } else {
+      // Separate by category
+      const coreCourses = [];
+      const labCourses = [];
+      const otherCourses = [];
 
-    // Separate by category
-    const coreCourses = [];
-    const labCourses = [];
-    const otherCourses = [];
+      semCourses.forEach(c => {
+        const nameLower = c.name.toLowerCase();
+        let isLab = nameLower.includes("lab") || nameLower.includes("practical") || nameLower.includes("workshop");
+        let isOther = nameLower.includes("project") || nameLower.includes("prototype") || nameLower.includes("design") ||
+                      nameLower.includes("foundation") || nameLower.includes("basic") ||
+                      nameLower.includes("constitution") || nameLower.includes("mandatory") || nameLower.includes("ethics") ||
+                      nameLower.includes("elective") || nameLower.includes("environmental") || nameLower.includes("seminar");
 
-    semCourses.forEach(c => {
-      const nameLower = c.name.toLowerCase();
-      let isLab = nameLower.includes("lab") || nameLower.includes("practical") || nameLower.includes("workshop");
-      let isOther = nameLower.includes("project") || nameLower.includes("prototype") || nameLower.includes("design") ||
-                    nameLower.includes("foundation") || nameLower.includes("basic") ||
-                    nameLower.includes("constitution") || nameLower.includes("mandatory") || nameLower.includes("ethics") ||
-                    nameLower.includes("elective") || nameLower.includes("environmental") || nameLower.includes("seminar");
-
-      const dispLower = c.display_name.toLowerCase();
-      if (dispLower.endsWith(" (lab)")) {
-        isLab = true;
-        isOther = false;
-      } else if (dispLower.endsWith(" (other)")) {
-        isLab = false;
-        isOther = true;
-      } else if (dispLower.endsWith(" (core)")) {
-        isLab = false;
-        isOther = false;
-      }
-
-      if (isLab) {
-        labCourses.push(c);
-      } else if (isOther) {
-        otherCourses.push(c);
-      } else {
-        coreCourses.push(c);
-      }
-    });
-
-    const alphaSort = (a, b) => a.display_name.localeCompare(b.display_name);
-    coreCourses.sort(alphaSort);
-    labCourses.sort(alphaSort);
-    otherCourses.sort(alphaSort);
-
-    let semGridContent = "";
-
-    const renderCategoryHTML = (catTitle, catCourses, icon, isLabFlag, isOtherFlag) => {
-      if (catCourses.length === 0) return "";
-      let cardsHtml = "";
-      
-      catCourses.forEach((c, idx) => {
-        let themeClass = "purple";
-        let tagLabel = "CORE SUBJECT";
-
-        if (isLabFlag) {
-          themeClass = "pink";
-          tagLabel = "LAB COURSE";
-        } else if (isOtherFlag) {
-          const cNameLower = c.name.toLowerCase();
-          if (cNameLower.includes("project") || cNameLower.includes("prototype") || cNameLower.includes("design")) {
-            themeClass = "green";
-            tagLabel = "PROJECT";
-          } else if (cNameLower.includes("foundation") || cNameLower.includes("basic")) {
-            themeClass = "blue";
-            tagLabel = "FOUNDATION";
-          } else if (cNameLower.includes("constitution") || cNameLower.includes("mandatory") || cNameLower.includes("ethics")) {
-            themeClass = "orange";
-            tagLabel = "MANDATORY";
-          } else if (cNameLower.includes("elective") || cNameLower.includes("environmental")) {
-            themeClass = "green";
-            tagLabel = "OPEN ELECTIVE";
-          } else {
-            themeClass = "green";
-            tagLabel = "OTHER COURSE";
-          }
+        const dispLower = c.display_name.toLowerCase();
+        if (dispLower.endsWith(" (lab)")) {
+          isLab = true;
+          isOther = false;
+        } else if (dispLower.endsWith(" (other)")) {
+          isLab = false;
+          isOther = true;
+        } else if (dispLower.endsWith(" (core)")) {
+          isLab = false;
+          isOther = false;
         }
 
-        const cleanLink = isValidUrl(c.url) ? c.url : "#";
-
-        cardsHtml += `
-          <a href="${escapeHTML(cleanLink)}" target="_blank" rel="noopener" class="course-card-v2 accent-${themeClass} ${c.is_moodle_active ? '' : 'inactive'}">
-            <div class="card-left">
-              <div class="card-title">${escapeHTML(cleanCourseTitle(c.display_name))}</div>
-              <div class="card-tag">${tagLabel}</div>
-            </div>
-            <div class="card-arrow-btn">→</div>
-          </a>`;
+        if (isLab) {
+          labCourses.push(c);
+        } else if (isOther) {
+          otherCourses.push(c);
+        } else {
+          coreCourses.push(c);
+        }
       });
 
-      return `
-        <div class="category-section">
-          <h3 class="category-header"><span>${icon}</span> ${catTitle} (${catCourses.length})</h3>
-          <div class="hub-grid-v2">
-            ${cardsHtml}
-          </div>
-        </div>`;
-    };
+      const alphaSort = (a, b) => a.display_name.localeCompare(b.display_name);
+      coreCourses.sort(alphaSort);
+      labCourses.sort(alphaSort);
+      otherCourses.sort(alphaSort);
 
-    semGridContent += renderCategoryHTML("Core Subjects", coreCourses, "📚", false, false);
-    semGridContent += renderCategoryHTML("Lab Courses", labCourses, "🔬", true, false);
-    semGridContent += renderCategoryHTML("Other Courses", otherCourses, "✨", false, true);
+      const renderCategoryHTML = (catTitle, catCourses, icon, isLabFlag, isOtherFlag) => {
+        if (catCourses.length === 0) return "";
+        let cardsHtml = "";
+        
+        catCourses.forEach(c => {
+          let themeColor = "#8b5cf6";
+          let borderColor = "rgba(139,92,246,0.12)";
+          let btnBg = "#f5f3ff";
+          let tagLabel = "CORE SUBJECT";
 
-    gridsHtml += `
-      <div class="hub-semester-grid" id="sem-grid-${sem.id}" style="display: ${isActive ? 'block' : 'none'};">
-        ${semGridContent}
-      </div>`;
+          if (isLabFlag) {
+            themeColor = "#ec4899";
+            borderColor = "rgba(236,72,153,0.12)";
+            btnBg = "#fdf2f8";
+            tagLabel = "LAB COURSE";
+          } else if (isOtherFlag) {
+            const cNameLower = c.name.toLowerCase();
+            if (cNameLower.includes("project") || cNameLower.includes("prototype") || cNameLower.includes("design")) {
+              themeColor = "#10b981";
+              borderColor = "rgba(16,185,129,0.12)";
+              btnBg = "#ecfdf5";
+              tagLabel = "PROJECT";
+            } else if (cNameLower.includes("foundation") || cNameLower.includes("basic")) {
+              themeColor = "#3b82f6";
+              borderColor = "rgba(59,130,246,0.12)";
+              btnBg = "#eff6ff";
+              tagLabel = "FOUNDATION";
+            } else if (cNameLower.includes("constitution") || cNameLower.includes("mandatory") || cNameLower.includes("ethics")) {
+              themeColor = "#f97316";
+              borderColor = "rgba(249,115,22,0.12)";
+              btnBg = "#fff7ed";
+              tagLabel = "MANDATORY";
+            } else if (cNameLower.includes("elective") || cNameLower.includes("environmental")) {
+              themeColor = "#10b981";
+              borderColor = "rgba(16,185,129,0.12)";
+              btnBg = "#ecfdf5";
+              tagLabel = "OPEN ELECTIVE";
+            } else {
+              themeColor = "#10b981";
+              borderColor = "rgba(16,185,129,0.12)";
+              btnBg = "#ecfdf5";
+              tagLabel = "OTHER COURSE";
+            }
+          }
+
+          const cleanLink = isValidUrl(c.url) ? c.url : "#";
+
+          cardsHtml += `
+            <a href="${escapeHTML(cleanLink)}" target="_blank" rel="noopener" style="display: flex; justify-content: space-between; align-items: center; flex: 1 1 260px; box-sizing: border-box; padding: 12px 14px; background: #ffffff; color: #1e293b; text-decoration: none !important; border: 1px solid ${borderColor}; border-radius: 10px; box-shadow: 0 2px 6px rgba(15,23,42,0.03); font-family: Segoe UI,Arial,sans-serif; margin: 4px; ${c.is_moodle_active ? '' : 'opacity: 0.6;'}">
+              <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; margin-right: 12px;">
+                <div style="font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: Segoe UI,Arial,sans-serif;">
+                  ${escapeHTML(cleanCourseTitle(c.display_name))}
+                </div>
+                <div style="font-size: 10px; font-weight: 800; color: ${themeColor}; text-transform: uppercase; letter-spacing: 0.06em; font-family: Segoe UI,Arial,sans-serif;">
+                  ${tagLabel}
+                </div>
+              </div>
+              <div style="width: 24px; height: 24px; border-radius: 50%; background: ${btnBg}; color: ${themeColor}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; flex-shrink: 0;">
+                →
+              </div>
+            </a>`;
+        });
+
+        return `
+          <div style="margin-bottom: 20px;">
+            <div style="font-family: Segoe UI,Arial,sans-serif; font-size: 13px; font-weight: 700; color: #1e293b; padding-left: 8px; border-left: 3px solid #3b82f6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">
+              ${icon} ${catTitle} (${catCourses.length})
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; width: 100%; box-sizing: border-box;">
+              ${cardsHtml}
+            </div>
+          </div>`;
+      };
+
+      semContent += renderCategoryHTML("Core Subjects", coreCourses, "📚", false, false);
+      semContent += renderCategoryHTML("Lab Courses", labCourses, "🔬", true, false);
+      semContent += renderCategoryHTML("Other Courses", otherCourses, "✨", false, true);
+    }
+
+    semestersHtml += `
+      <details style="margin-bottom: 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,0.01); overflow: hidden; width: 100%; box-sizing: border-box;" ${isActive ? 'open' : ''}>
+        <summary style="cursor: pointer; padding: 14px 18px; background: #e2e8f0; color: #334155; font-weight: 700; font-size: 14px; font-family: Segoe UI,Arial,sans-serif; display: flex; justify-content: space-between; align-items: center; outline: none; user-select: none;">
+          <span>${escapeHTML(sem.name)}</span>
+          <span style="font-size: 11px; color: #64748b; font-weight: normal;">Click to expand/collapse</span>
+        </summary>
+        <div style="padding: 20px 24px; box-sizing: border-box; background: #ffffff;">
+          ${semContent}
+        </div>
+      </details>`;
   });
 
   // Build Pokemon section HTML
   let pokemonHtml = "";
   if (settings?.pokemon_enabled) {
     pokemonHtml = `
-      <div class="hub-poke-row">
-        <div class="hub-poke-grid">
-          <div class="hub-poke-card"><img class="hub-poke-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif" alt="Bulbasaur"></div>
-          <div class="hub-poke-card"><img class="hub-poke-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/4.gif" alt="Charmander"></div>
-          <div class="hub-poke-card"><img class="hub-poke-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/7.gif" alt="Squirtle"></div>
-          <div class="hub-poke-card"><img class="hub-poke-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" alt="Pikachu"></div>
-          <div class="hub-poke-card"><img class="hub-poke-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/39.gif" alt="Jigglypuff"></div>
-          <div class="hub-poke-card"><img class="hub-poke-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" alt="Eevee"></div>
+      <div style="margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 20px; width: 100%; box-sizing: border-box;">
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: center;">
+          <div style="display: flex; align-items: center; justify-content: center;"><img style="width: 40px; height: 40px; object-fit: contain; display: block;" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif" alt="Bulbasaur"></div>
+          <div style="display: flex; align-items: center; justify-content: center;"><img style="width: 40px; height: 40px; object-fit: contain; display: block;" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/4.gif" alt="Charmander"></div>
+          <div style="display: flex; align-items: center; justify-content: center;"><img style="width: 40px; height: 40px; object-fit: contain; display: block;" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/7.gif" alt="Squirtle"></div>
+          <div style="display: flex; align-items: center; justify-content: center;"><img style="width: 40px; height: 40px; object-fit: contain; display: block;" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" alt="Pikachu"></div>
+          <div style="display: flex; align-items: center; justify-content: center;"><img style="width: 40px; height: 40px; object-fit: contain; display: block;" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/39.gif" alt="Jigglypuff"></div>
+          <div style="display: flex; align-items: center; justify-content: center;"><img style="width: 40px; height: 40px; object-fit: contain; display: block;" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" alt="Eevee"></div>
         </div>
       </div>`;
   }
 
-  // Combined Output block
-  const fullHtml = `
+  // Generate output Moodle-ready structure
+  const staticHtml = `
 <!-- Moodle Course Hub Card Block -->
-<style>
-${generateMoodleCourseHubCSS()}
-</style>
-
-<div class="ashish-course-hub" id="moodle-course-hub-container">
-  <div class="hub-header">
-    <h1 class="hub-title">${titleText}</h1>
-    <p class="hub-subtitle">Explore your enrolled courses and labs for the selected semester.</p>
+<div class="ashish-course-hub" id="moodle-course-hub-container" style="width: 100%; max-width: 900px; margin: 20px auto; padding: 20px 24px; box-sizing: border-box; background: #f8fafc linear-gradient(135deg, rgba(99,102,241,0.01) 0%, rgba(217,70,239,0.01) 100%); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 6px 20px rgba(15,23,42,0.05); font-family: Segoe UI,Arial,sans-serif; color: #0f172a; position: relative; overflow: hidden;">
+  <div style="position: relative; z-index: 1; margin-bottom: 24px; font-family: Segoe UI,Arial,sans-serif;">
+    <div style="font-size: 26px; line-height: 1.2; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; font-family: Segoe UI,Arial,sans-serif;">
+      ${escapeHTML(titleText)}
+    </div>
+    <div style="font-size: 14px; line-height: 1.4; color: #64748b; font-family: Segoe UI,Arial,sans-serif;">
+      Explore your enrolled courses and labs for the selected semester.
+    </div>
   </div>
 
-  <div class="hub-tabs-bar">
-    ${tabsHtml}
+  <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
+    ${semestersHtml}
   </div>
 
-  ${gridsHtml}
-
-  <div class="hub-footer">
-    <span style="font-size:1.1rem;">🎓</span>
-    <span class="hub-footer-text">${escapeHTML("Stay consistent, keep learning, and make it count.")}</span>
-    <span style="font-size:1.1rem; color:#a78bfa;">✦</span>
+  <div style="margin-top: 30px; background: #f5f3ff; border: 1px solid rgba(139,92,246,0.08); padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;">
+    <span style="font-size: 16px;">🎓</span>
+    <span style="font-size: 13px; font-weight: 600; color: #6d28d9; font-style: italic; font-family: Segoe UI,Arial,sans-serif; text-align: center;">
+      Stay consistent, keep learning, and make it count.
+    </span>
+    <span style="font-size: 14px; color: #a78bfa;">✦</span>
   </div>
 
   ${pokemonHtml}
 </div>
-
-<script>
-(function() {
-  const container = document.getElementById("moodle-course-hub-container");
-  if (!container) return;
-  const tabs = container.querySelectorAll(".hub-tab-v2");
-  const grids = container.querySelectorAll(".hub-semester-grid");
-  const emptyStates = container.querySelectorAll(".hub-empty-state");
-
-  tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      const activeId = tab.getAttribute("data-sem-id");
-      
-      // Update active tab styles
-      tabs.forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-
-      // Toggle visible grids & empty states
-      grids.forEach(grid => {
-        if (grid.getAttribute("id") === "sem-grid-" + activeId) {
-          grid.style.display = "block";
-        } else {
-          grid.style.display = "none";
-        }
-      });
-
-      emptyStates.forEach(empty => {
-        if (empty.getAttribute("id") === "sem-empty-" + activeId) {
-          empty.style.display = "block";
-        } else {
-          empty.style.display = "none";
-        }
-      });
-    });
-  });
-})();
-</script>
   `.trim();
 
-  return fullHtml;
+  return staticHtml;
 }
 
-// Scoped Moodle Block CSS generator
+// 2. Legacy generator and CSS wrapper (Kept for preview compatibility or references)
+function generateMoodleCourseHubHTML(courses, semesters, settings, userEmail) {
+  return generateMoodleStaticHTML(courses, semesters, settings, userEmail);
+}
+
 function generateMoodleCourseHubCSS() {
-  return `
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-
-    .ashish-course-hub {
-      background: #f8fafc;
-      border-radius: 16px;
-      padding: 20px 28px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
-      border: 1px solid rgba(0,0,0,0.02);
-      margin-bottom: 24px;
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      position: relative;
-      overflow: hidden;
-      box-sizing: border-box;
-      width: 100%;
-    }
-    
-    .ashish-course-hub::before {
-      content: "";
-      position: absolute;
-      top: -100px;
-      right: -100px;
-      width: 300px;
-      height: 300px;
-      background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, rgba(217,70,239,0.05) 50%, rgba(255,255,255,0) 100%);
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .ashish-course-hub .hub-header {
-      position: relative;
-      z-index: 1;
-      margin-bottom: 32px;
-    }
-    .ashish-course-hub .hub-title {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: #0f172a;
-      margin: 0 0 6px 0;
-      letter-spacing: -0.02em;
-    }
-    .ashish-course-hub .hub-subtitle {
-      font-size: 1rem;
-      color: #64748b;
-      margin: 0;
-    }
-
-    .ashish-course-hub .hub-tabs-bar {
-      background: white;
-      border-radius: 16px;
-      padding: 8px;
-      box-shadow: 0 4px 20px rgba(15,23,42,0.02);
-      border: 1px solid #f1f5f9;
-      display: flex;
-      gap: 4px;
-      margin-bottom: 32px;
-      overflow-x: auto;
-      position: relative;
-      z-index: 1;
-    }
-    .ashish-course-hub .hub-tab-v2 {
-      flex: 1;
-      text-align: center;
-      padding: 8px 14px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: #94a3b8;
-      transition: all 0.25s ease;
-      white-space: nowrap;
-      user-select: none;
-    }
-    .ashish-course-hub .hub-tab-v2:hover {
-      color: #475569;
-      background: #f8fafc;
-    }
-    .ashish-course-hub .hub-tab-v2.active {
-      background: linear-gradient(135deg, #6366f1, #d946ef);
-      color: white;
-      box-shadow: 0 4px 15px rgba(99,102,241,0.25);
-    }
-
-    .ashish-course-hub .hub-grid-v2 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      position: relative;
-      z-index: 1;
-    }
-    @media (max-width: 1024px) {
-      .ashish-course-hub .hub-grid-v2 {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-    @media (max-width: 768px) {
-      .ashish-course-hub .hub-grid-v2 {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .ashish-course-hub .course-card-v2 {
-      background: white;
-      border-radius: 10px;
-      padding: 10px 14px;
-      text-decoration: none !important;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid #f1f5f9;
-      box-shadow: 0 2px 6px rgba(15,23,42,0.01);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      box-sizing: border-box;
-    }
-
-    .ashish-course-hub .course-card-v2.accent-purple {
-      --theme-color: #8b5cf6;
-      --border-color: rgba(139,92,246,0.12);
-      --btn-bg: #f5f3ff;
-      --shadow-glow: rgba(139,92,246,0.15);
-    }
-    .ashish-course-hub .course-card-v2.accent-pink {
-      --theme-color: #ec4899;
-      --border-color: rgba(236,72,153,0.12);
-      --btn-bg: #fdf2f8;
-      --shadow-glow: rgba(236,72,153,0.15);
-    }
-    .ashish-course-hub .course-card-v2.accent-blue {
-      --theme-color: #3b82f6;
-      --border-color: rgba(59,130,246,0.12);
-      --btn-bg: #eff6ff;
-      --shadow-glow: rgba(59,130,246,0.15);
-    }
-    .ashish-course-hub .course-card-v2.accent-green {
-      --theme-color: #10b981;
-      --border-color: rgba(16,185,129,0.12);
-      --btn-bg: #ecfdf5;
-      --shadow-glow: rgba(16,185,129,0.15);
-    }
-    .ashish-course-hub .course-card-v2.accent-orange {
-      --theme-color: #f97316;
-      --border-color: rgba(249,115,22,0.12);
-      --btn-bg: #fff7ed;
-      --shadow-glow: rgba(249,115,22,0.15);
-    }
-
-    .ashish-course-hub .course-card-v2 {
-      border-color: var(--border-color);
-    }
-    .ashish-course-hub .course-card-v2:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px var(--shadow-glow);
-      border-color: var(--theme-color);
-    }
-
-    .ashish-course-hub .card-left {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      flex: 1;
-      margin-right: 12px;
-      min-width: 0;
-    }
-    .ashish-course-hub .card-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #1e293b;
-      line-height: 1.3;
-      transition: color 0.2s ease;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .ashish-course-hub .course-card-v2:hover .card-title {
-      color: var(--theme-color);
-    }
-    
-    .ashish-course-hub .card-tag {
-      font-size: 0.62rem;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      color: var(--theme-color);
-      text-transform: uppercase;
-    }
-
-    .ashish-course-hub .card-arrow-btn {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: var(--btn-bg);
-      color: var(--theme-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
-      font-weight: bold;
-      transition: all 0.25s ease;
-      flex-shrink: 0;
-    }
-    .ashish-course-hub .course-card-v2:hover .card-arrow-btn {
-      background: var(--theme-color);
-      color: white;
-      transform: scale(1.1);
-    }
-
-    .ashish-course-hub .course-card-v2.inactive {
-      opacity: 0.6;
-    }
-
-    .ashish-course-hub .category-section {
-      margin-bottom: 24px;
-    }
-    .ashish-course-hub .category-header {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 12px;
-      padding-left: 8px;
-      border-left: 3px solid #3b82f6;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .ashish-course-hub .hub-footer {
-      margin-top: 40px;
-      background: #f5f3ff;
-      border: 1px solid rgba(139,92,246,0.08);
-      padding: 14px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      position: relative;
-      z-index: 1;
-    }
-    .ashish-course-hub .hub-footer-text {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #6d28d9;
-      font-style: italic;
-    }
-
-    .ashish-course-hub .hub-poke-row {
-      margin-top: 30px;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 24px;
-      position: relative;
-      z-index: 1;
-      width: 100%;
-    }
-    .ashish-course-hub .hub-poke-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 24px;
-      justify-content: center;
-      align-items: center;
-    }
-    .ashish-course-hub .hub-poke-card {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .ashish-course-hub .hub-poke-img {
-      width: 50px;
-      height: 50px;
-      object-fit: contain;
-      animation: float 2.5s ease-in-out infinite;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-4px); }
-    }
-
-    @media (max-width: 480px) {
-      .ashish-course-hub {
-        padding: 14px 16px !important;
-      }
-      .ashish-course-hub .hub-tabs-bar {
-        padding: 6px !important;
-        margin-bottom: 20px !important;
-      }
-      .ashish-course-hub .hub-tab-v2 {
-        padding: 6px 8px !important;
-        font-size: 0.75rem !important;
-        border-radius: 8px !important;
-      }
-      .ashish-course-hub .course-card-v2 {
-        padding: 8px 12px !important;
-      }
-      .ashish-course-hub .card-title {
-        font-size: 0.78rem !important;
-      }
-      .ashish-course-hub .card-tag {
-        font-size: 0.58rem !important;
-      }
-      .ashish-course-hub .card-arrow-btn {
-        width: 20px !important;
-        height: 20px !important;
-        font-size: 0.7rem !important;
-      }
-    }
-  `;
+  return "";
 }
 
 // Node compatibility
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { generateMoodleCourseHubHTML, generateMoodleCourseHubCSS };
+  module.exports = { generateMoodleStaticHTML, generateMoodleCourseHubHTML, generateMoodleCourseHubCSS };
 }
