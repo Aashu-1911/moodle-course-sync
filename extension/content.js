@@ -1322,13 +1322,34 @@ function setupDynamicCourseObserver() {
 }
 
 // Initialize scraper routine on page load
-function init() {
+async function init() {
   const path = window.location.pathname;
   // Dashboard URL matches
   const isDashboard = path === "/my/" || path === "/my/index.php" || path === "/my/courses.php" || path === "/";
   
   if (isDashboard) {
-    console.log("[Moodle Hub] Dashboard page matched. Initiating auto sync...");
+    console.log("[Moodle Hub] Dashboard page matched. Checking for new courses first...");
+    
+    // Check if courseChecker.js has already detected new courses this page load
+    try {
+      const checkerData = await new Promise((resolve) => {
+        if (isContextValid()) {
+          chrome.storage.local.get(["newly_added_courses"], resolve);
+        } else {
+          resolve({});
+        }
+      });
+      
+      const newCoursesFromChecker = checkerData?.newly_added_courses || [];
+      if (newCoursesFromChecker.length > 0) {
+        console.log(`[Moodle Hub] courseChecker found ${newCoursesFromChecker.length} new course(s). Proceeding to sync.`);
+      } else {
+        console.log("[Moodle Hub] No new courses from courseChecker. Running full sync anyway.");
+      }
+    } catch (e) {
+      console.warn("[Moodle Hub] Could not read courseChecker data:", e.message);
+    }
+    
     runSynchronization();
     setupDynamicCourseObserver();
   }

@@ -24,6 +24,11 @@
   "content_scripts": [
     {
       "matches": ["http://moodle.mitaoe.ac.in/*"],
+      "js": ["courseChecker.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://moodle.mitaoe.ac.in/*"],
       "js": ["supabase.js", "htmlGenerator.js", "content.js"],
       "run_at": "document_end"
     },

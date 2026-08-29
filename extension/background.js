@@ -43,6 +43,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     getAuthStatus().then(status => sendResponse(status));
     return true;
   }
+
+  if (request.action === "NEW_COURSES_DETECTED") {
+    console.log(`[Moodle Hub BG] 🆕 ${request.courses.length} new course(s) detected by course checker.`);
+    request.courses.forEach(c => {
+      console.log(`[Moodle Hub BG]   → ${c.name} (id=${c.id})`);
+    });
+    // Store notification flag so popup can display it
+    chrome.storage.local.set({
+      "new_course_notification": {
+        courses: request.courses,
+        detectedAt: new Date().toISOString()
+      }
+    });
+    sendResponse({ success: true });
+    return false;
+  }
 });
 
 // 2. Fetch and refresh session if close to expiration (Phase 9)
