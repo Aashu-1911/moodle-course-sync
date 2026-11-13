@@ -9,9 +9,9 @@
     "tabs"
   ],
   "host_permissions": [
-    "http://moodle.mitaoe.ac.in/*",
-    "http://localhost:8000/*",
-    "https://*.vercel.app/*"
+    "*://moodle.mitaoe.ac.in/*",
+    "*://localhost:8000/*",
+    "*://*.vercel.app/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -23,19 +23,19 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://moodle.mitaoe.ac.in/*"],
+      "matches": ["*://moodle.mitaoe.ac.in/*"],
       "js": ["courseChecker.js"],
       "run_at": "document_idle"
     },
     {
-      "matches": ["http://moodle.mitaoe.ac.in/*"],
+      "matches": ["*://moodle.mitaoe.ac.in/*"],
       "js": ["supabase.js", "htmlGenerator.js", "content.js"],
       "run_at": "document_end"
     },
     {
       "matches": [
-        "http://localhost:8000/*",
-        "https://*.vercel.app/*"
+        "*://localhost:8000/*",
+        "*://*.vercel.app/*"
       ],
       "js": ["connector.js"],
       "run_at": "document_end"
